@@ -32,7 +32,7 @@ async def ingest_material(
     admin: AuthenticatedUser = Depends(require_admin),
     rag: RAGService = Depends(get_rag_service)
 ):
-    """Index a PDF material for search. Admin only."""
+    """Index a material for search. Supports PDF, PPTX, DOCX, TXT, code files. Admin only."""
     supabase = get_supabase_admin_client()
     
     try:
@@ -42,6 +42,7 @@ async def ingest_material(
             raise HTTPException(status_code=404, detail="Material not found")
         
         material = resp.data
+        file_type = material.get("file_type", "").lower()
         
         # Check if indexed
         if material.get("is_indexed") and not force:
@@ -50,23 +51,27 @@ async def ingest_material(
                 message="Already indexed. Use force=true to re-index."
             )
         
-        # Check PDF
-        if material.get("file_type", "").lower() != "pdf":
-            raise HTTPException(status_code=400, detail="Only PDF files supported")
+        # Check if supported
+        if file_type not in RAGService.SUPPORTED_TYPES:
+            raise HTTPException(status_code=400, detail=f"File type '{file_type}' not supported. Supported: {RAGService.SUPPORTED_TYPES}")
         
         # Download file
         file_data = supabase.storage.from_(settings.STORAGE_BUCKET).download(material["file_path"])
         if not file_data:
             raise HTTPException(status_code=500, detail="Failed to download file")
         
-        # Index
+        # Index with full metadata
         result = await rag.index_material(
             material_id=material_id,
             file_content=file_data,
-            file_name=material.get("file_name", "unknown.pdf"),
+            file_name=material.get("file_name", "unknown"),
+            file_type=file_type,
+            title=material.get("title"),
+            description=material.get("description"),
             category=material.get("category"),
             topic=material.get("topic"),
-            week_number=material.get("week_number")
+            week_number=material.get("week_number"),
+            tags=material.get("tags")
         )
         
         if not result["success"]:
@@ -156,25 +161,35 @@ async def ingest_all(
     admin: AuthenticatedUser = Depends(require_admin),
     rag: RAGService = Depends(get_rag_service)
 ):
-    """Index all unindexed PDF materials. Admin only."""
+    """Index all unindexed materials. Supports PDF, PPTX, DOCX, TXT, code files. Admin only."""
     supabase = get_supabase_admin_client()
     
     try:
-        resp = supabase.table("course_materials").select("*").eq(
-            "file_type", "pdf"
-        ).eq("is_indexed", False).execute()
+        # Get all unindexed materials with supported file types
+        resp = supabase.table("course_materials").select("*").eq("is_indexed", False).execute()
         
         materials = resp.data or []
+        # Filter to supported types
+        materials = [m for m in materials if m.get("file_type", "").lower() in RAGService.SUPPORTED_TYPES]
+        
         if not materials:
-            return MessageResponse(message="No unindexed PDFs found.")
+            return MessageResponse(message="No unindexed materials found with supported file types.")
         
         success, errors = 0, 0
         for m in materials:
             try:
                 file_data = supabase.storage.from_(settings.STORAGE_BUCKET).download(m["file_path"])
                 result = await rag.index_material(
-                    m["id"], file_data, m.get("file_name", "unknown.pdf"),
-                    m.get("category"), m.get("topic"), m.get("week_number")
+                    material_id=m["id"],
+                    file_content=file_data,
+                    file_name=m.get("file_name", "unknown"),
+                    file_type=m.get("file_type", "txt"),
+                    title=m.get("title"),
+                    description=m.get("description"),
+                    category=m.get("category"),
+                    topic=m.get("topic"),
+                    week_number=m.get("week_number"),
+                    tags=m.get("tags")
                 )
                 if result["success"]:
                     success += 1
