@@ -37,7 +37,7 @@ export default function IntelligentSearch() {
       // Get auth token from Supabase session
       const supabase = createSPAClient();
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session?.access_token) {
         throw new Error('Please log in to use the search feature');
       }
@@ -70,6 +70,18 @@ export default function IntelligentSearch() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      <div className="mb-6">
+        <a
+          href="/app"
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Dashboard
+        </a>
+      </div>
+
       {/* Header */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 mb-4">
