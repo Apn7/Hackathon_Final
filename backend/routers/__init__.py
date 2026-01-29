@@ -6,5 +6,7 @@ from .materials import router as materials_router
 from .search import router as search_router
 from .chat import router as chat_router
 
-__all__ = ["materials_router", "search_router", "chat_router"]
+from .generate import router as generate_router
+
+__all__ = ["materials_router", "search_router", "chat_router", "generate_router"]
 
