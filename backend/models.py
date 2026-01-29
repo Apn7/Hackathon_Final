@@ -102,3 +102,66 @@ class ErrorResponse(BaseModel):
     error: str
     detail: Optional[str] = None
     success: bool = False
+
+
+# ============================================
+# Search / RAG Models
+# ============================================
+
+class SearchRequest(BaseModel):
+    """Request for vector search."""
+    query: str = Field(..., min_length=1, max_length=1000)
+    limit: int = Field(default=5, ge=1, le=20)
+    category: Optional[str] = None
+    week: Optional[int] = Field(default=None, ge=1, le=52)
+
+
+class SearchResult(BaseModel):
+    """Single search result."""
+    material_id: str
+    chunk_text: str
+    file_name: str
+    page_number: Optional[int]
+    category: Optional[str]
+    topic: Optional[str]
+    similarity: float
+
+
+class SearchResponse(BaseModel):
+    """Response for vector search."""
+    results: List[SearchResult]
+    query: str
+    total: int
+
+
+class AskRequest(BaseModel):
+    """Request for RAG Q&A."""
+    question: str = Field(..., min_length=1, max_length=2000)
+    limit: int = Field(default=5, ge=1, le=10)
+    category: Optional[str] = None
+    week: Optional[int] = None
+
+
+class SourceDocument(BaseModel):
+    """Source in RAG response."""
+    file_name: str
+    page_number: Optional[int]
+    excerpt: str
+    similarity: float
+    material_id: str
+
+
+class AskResponse(BaseModel):
+    """Response for RAG Q&A."""
+    answer: str
+    sources: List[SourceDocument]
+    question: str
+
+
+class IngestResponse(BaseModel):
+    """Response for ingestion."""
+    success: bool
+    material_id: str
+    chunks_created: int
+    message: str
+

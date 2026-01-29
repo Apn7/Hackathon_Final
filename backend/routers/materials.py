@@ -134,10 +134,32 @@ async def upload_material(
         
         material_id = db_response.data[0]["id"]
         
+        # Auto-index PDFs for RAG search
+        index_message = ""
+        if file_ext.lower() == "pdf":
+            try:
+                from services.rag_service import RAGService
+                if settings.GEMINI_API_KEY:
+                    rag_service = RAGService(supabase, settings.GEMINI_API_KEY)
+                    result = await rag_service.index_material(
+                        material_id=material_id,
+                        file_content=file_content,
+                        file_name=sanitize_filename(file.filename or "unnamed"),
+                        category=category.value,
+                        topic=topic,
+                        week_number=week_number
+                    )
+                    if result["success"]:
+                        index_message = f" Indexed {result['chunks_created']} chunks for AI search."
+                    else:
+                        index_message = f" Indexing failed: {result.get('error', 'Unknown error')}"
+            except Exception as e:
+                index_message = f" Auto-indexing skipped: {str(e)}"
+        
         return UploadResponse(
             id=material_id,
             file_path=storage_path,
-            message="Material uploaded successfully"
+            message=f"Material uploaded successfully.{index_message}"
         )
         
     except HTTPException:

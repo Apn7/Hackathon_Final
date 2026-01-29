@@ -14,3 +14,11 @@ python-dotenv>=1.0.0
 
 # CORS
 # (Built into FastAPI)
+
+# RAG Dependencies
+langchain>=0.1.0
+langchain-community>=0.0.10
+langchain-google-genai>=0.0.6
+pypdf>=3.17.0
+google-generativeai>=0.3.0
+

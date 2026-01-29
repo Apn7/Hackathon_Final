@@ -19,6 +19,7 @@ class Settings:
     SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
     STORAGE_BUCKET: str = os.getenv("STORAGE_BUCKET", "course-materials")
     MAX_FILE_SIZE_MB: int = int(os.getenv("MAX_FILE_SIZE_MB", "50"))
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     
     # Allowed file extensions
     ALLOWED_EXTENSIONS: set = {
