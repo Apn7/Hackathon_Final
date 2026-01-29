@@ -1,3 +1,4 @@
-"""Services package for RAG."""
+"""Services package for RAG and Chat."""
 from .rag_service import RAGService
-__all__ = ["RAGService"]
+from .chat_service import ChatService
+__all__ = ["RAGService", "ChatService"]

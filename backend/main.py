@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Import routers
-from routers import materials_router, search_router
+from routers import materials_router, search_router, chat_router
 
 # Initialize the FastAPI application
 app = FastAPI(
@@ -63,6 +63,7 @@ async def health_check():
 
 app.include_router(materials_router)
 app.include_router(search_router)
+app.include_router(chat_router)
 
 
 # ============================================

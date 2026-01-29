@@ -165,3 +165,55 @@ class IngestResponse(BaseModel):
     chunks_created: int
     message: str
 
+
+# ============================================
+# Chat / Conversation Models
+# ============================================
+
+class ChatMessageCreate(BaseModel):
+    """Request to send a chat message."""
+    conversation_id: str
+    message: str = Field(..., min_length=1, max_length=4000)
+
+
+class ChatMessageResponse(BaseModel):
+    """A single chat message."""
+    id: str
+    role: str  # 'user' or 'assistant'
+    content: str
+    sources: List[SourceDocument] = []
+    created_at: datetime
+
+
+class ConversationCreate(BaseModel):
+    """Request to create a new conversation."""
+    title: Optional[str] = "New Chat"
+
+
+class ConversationResponse(BaseModel):
+    """A conversation with its messages."""
+    id: str
+    title: str
+    message_count: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class ConversationWithMessages(ConversationResponse):
+    """Conversation with full message history."""
+    messages: List[ChatMessageResponse] = []
+
+
+class ChatRequest(BaseModel):
+    """Request for chat (can create conversation inline)."""
+    message: str = Field(..., min_length=1, max_length=4000)
+    conversation_id: Optional[str] = None  # If None, creates new conversation
+
+
+class ChatResponse(BaseModel):
+    """Response from chat endpoint."""
+    conversation_id: str
+    message: ChatMessageResponse
+    sources: List[SourceDocument] = []
+    intent: Optional[str] = None  # search, summarize, explain, followup, general
+
