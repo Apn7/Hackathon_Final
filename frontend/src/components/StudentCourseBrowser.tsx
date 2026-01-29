@@ -1,23 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createSPAClient } from '@/lib/supabase/client';
-
-interface Material {
-  id: string;
-  title: string;
-  description: string | null;
-  file_path: string;
-  file_name: string;
-  file_type: string;
-  file_size_bytes: number | null;
-  category: 'theory' | 'lab';
-  topic: string | null;
-  week_number: number | null;
-  tags: string[];
-  content_type: string | null;
-  created_at: string;
-}
+import MaterialsAPI, { Material } from '@/lib/materialsApi';
 
 type Category = 'theory' | 'lab';
 type ViewLevel = 'categories' | 'courses' | 'weeks' | 'files';
@@ -25,28 +9,23 @@ type ViewLevel = 'categories' | 'courses' | 'weeks' | 'files';
 export default function StudentCourseBrowser() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Navigation state
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
   const [currentCourse, setCurrentCourse] = useState<string | null>(null);
   const [currentWeek, setCurrentWeek] = useState<number | null>(null);
-  
-  const supabase = createSPAClient();
 
-  // Fetch all materials
+  // Fetch all materials via FastAPI
   const fetchMaterials = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const { data, error } = await supabase
-        .from('course_materials')
-        .select('*')
-        .order('week_number', { ascending: true })
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      setMaterials(data || []);
-    } catch (err) {
+      const response = await MaterialsAPI.list({ page_size: 100 });
+      setMaterials(response.materials);
+    } catch (err: any) {
       console.error('Failed to fetch materials:', err);
+      setError(err.message || 'Failed to fetch materials');
     } finally {
       setLoading(false);
     }
@@ -79,13 +58,13 @@ export default function StudentCourseBrowser() {
     );
   };
 
-  // Download file
+  // Download file via FastAPI
   const handleDownload = async (material: Material) => {
-    const { data } = await supabase.storage
-      .from('course-materials')
-      .createSignedUrl(material.file_path, 3600);
-    if (data?.signedUrl) {
-      window.open(data.signedUrl, '_blank');
+    const url = await MaterialsAPI.getDownloadUrl(material);
+    if (url) {
+      window.open(url, '_blank');
+    } else {
+      setError('Failed to get download URL');
     }
   };
 
@@ -140,6 +119,21 @@ export default function StudentCourseBrowser() {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+        <p className="font-medium">Error loading materials</p>
+        <p className="text-sm">{error}</p>
+        <button 
+          onClick={fetchMaterials}
+          className="mt-2 px-3 py-1 text-sm bg-red-100 hover:bg-red-200 rounded"
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -341,7 +335,19 @@ export default function StudentCourseBrowser() {
                       <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
                         <span className="uppercase">{file.file_type}</span>
                         <span>{formatFileSize(file.file_size_bytes)}</span>
+                        {file.content_type && (
+                          <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded">
+                            {file.content_type.replace('_', ' ')}
+                          </span>
+                        )}
                       </div>
+                      {file.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {file.tags.slice(0, 3).map((tag, i) => (
+                            <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">{tag}</span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <button
                       onClick={() => handleDownload(file)}

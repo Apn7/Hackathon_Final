@@ -1,23 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createSPAClient } from '@/lib/supabase/client';
-
-interface Material {
-  id: string;
-  title: string;
-  description: string | null;
-  file_path: string;
-  file_name: string;
-  file_type: string;
-  file_size_bytes: number | null;
-  category: 'theory' | 'lab';
-  topic: string | null;
-  week_number: number | null;
-  tags: string[];
-  content_type: string | null;
-  created_at: string;
-}
+import MaterialsAPI, { Material } from '@/lib/materialsApi';
 
 type Category = 'theory' | 'lab';
 type ContentType = 'lecture_slide' | 'lab_code' | 'note' | 'reference' | 'other';
@@ -46,23 +30,16 @@ export default function AdminCourseBrowser() {
     content_type: 'lecture_slide' as ContentType,
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
-  const supabase = createSPAClient();
 
-  // Fetch materials
+  // Fetch materials via FastAPI
   const fetchMaterials = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('course_materials')
-        .select('*')
-        .order('week_number', { ascending: true })
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      setMaterials(data || []);
-    } catch (err) {
+      const response = await MaterialsAPI.list({ page_size: 100 });
+      setMaterials(response.materials);
+    } catch (err: any) {
       console.error('Failed to fetch materials:', err);
+      setError(err.message || 'Failed to fetch materials');
     } finally {
       setLoading(false);
     }
@@ -94,7 +71,7 @@ export default function AdminCourseBrowser() {
     return 'categories';
   };
 
-  // Upload material
+  // Upload material via FastAPI
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile || !currentCategory) {
@@ -106,41 +83,16 @@ export default function AdminCourseBrowser() {
     setError(null);
     
     try {
-      const fileExt = selectedFile.name.split('.').pop()?.toLowerCase() || '';
-      const uniqueId = crypto.randomUUID().slice(0, 8);
-      const weekPath = uploadData.week_number 
-        ? `week-${uploadData.week_number.padStart(2, '0')}`
-        : 'general';
-      const filePath = `${currentCategory}/${weekPath}/${uniqueId}_${selectedFile.name}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('course-materials')
-        .upload(filePath, selectedFile);
-      
-      if (uploadError) throw uploadError;
-      
-      const tagList = uploadData.tags.split(',').map(t => t.trim()).filter(t => t);
-      
-      const { error: insertError } = await supabase
-        .from('course_materials')
-        .insert({
-          title: uploadData.title,
-          description: uploadData.description || null,
-          file_path: filePath,
-          file_name: selectedFile.name,
-          file_type: fileExt,
-          file_size_bytes: selectedFile.size,
-          category: currentCategory,
-          topic: uploadData.topic || currentCourse,
-          week_number: uploadData.week_number ? parseInt(uploadData.week_number) : null,
-          tags: tagList,
-          content_type: uploadData.content_type,
-        });
-      
-      if (insertError) {
-        await supabase.storage.from('course-materials').remove([filePath]);
-        throw insertError;
-      }
+      await MaterialsAPI.upload({
+        file: selectedFile,
+        title: uploadData.title,
+        category: currentCategory,
+        description: uploadData.description || undefined,
+        topic: uploadData.topic || currentCourse || undefined,
+        week_number: uploadData.week_number ? parseInt(uploadData.week_number) : undefined,
+        tags: uploadData.tags || undefined,
+        content_type: uploadData.content_type,
+      });
       
       setSuccess('Material uploaded successfully!');
       resetForm();
@@ -152,7 +104,7 @@ export default function AdminCourseBrowser() {
     }
   };
 
-  // Update material
+  // Update material via FastAPI
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingMaterial) return;
@@ -163,19 +115,14 @@ export default function AdminCourseBrowser() {
     try {
       const tagList = uploadData.tags.split(',').map(t => t.trim()).filter(t => t);
       
-      const { error: updateError } = await supabase
-        .from('course_materials')
-        .update({
-          title: uploadData.title,
-          description: uploadData.description || null,
-          topic: uploadData.topic,
-          week_number: uploadData.week_number ? parseInt(uploadData.week_number) : null,
-          tags: tagList,
-          content_type: uploadData.content_type,
-        })
-        .eq('id', editingMaterial.id);
-      
-      if (updateError) throw updateError;
+      await MaterialsAPI.update(editingMaterial.id, {
+        title: uploadData.title,
+        description: uploadData.description || undefined,
+        topic: uploadData.topic,
+        week_number: uploadData.week_number ? parseInt(uploadData.week_number) : undefined,
+        tags: tagList,
+        content_type: uploadData.content_type,
+      });
       
       setSuccess('Material updated successfully!');
       resetForm();
@@ -187,20 +134,12 @@ export default function AdminCourseBrowser() {
     }
   };
 
-  // Delete material
+  // Delete material via FastAPI
   const handleDelete = async (material: Material) => {
     if (!confirm(`Delete "${material.title}"? This cannot be undone.`)) return;
     
     try {
-      await supabase.storage.from('course-materials').remove([material.file_path]);
-      
-      const { error } = await supabase
-        .from('course_materials')
-        .delete()
-        .eq('id', material.id);
-      
-      if (error) throw error;
-      
+      await MaterialsAPI.delete(material.id);
       setSuccess('Material deleted');
       fetchMaterials();
     } catch (err: any) {
@@ -210,11 +149,11 @@ export default function AdminCourseBrowser() {
 
   // Download file
   const handleDownload = async (material: Material) => {
-    const { data } = await supabase.storage
-      .from('course-materials')
-      .createSignedUrl(material.file_path, 3600);
-    if (data?.signedUrl) {
-      window.open(data.signedUrl, '_blank');
+    const url = await MaterialsAPI.getDownloadUrl(material);
+    if (url) {
+      window.open(url, '_blank');
+    } else {
+      setError('Failed to get download URL');
     }
   };
 
