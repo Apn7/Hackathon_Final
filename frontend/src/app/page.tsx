@@ -1,8 +1,36 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { BookOpen, Brain, Search, MessageSquare, Users, Zap } from 'lucide-react';
+import { BookOpen, Brain, Search, MessageSquare, Users, Zap, User, LogOut } from 'lucide-react';
+import { createSPAClient } from '@/lib/supabase/client';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export default function Home() {
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const supabase = createSPAClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        setUser(session?.user || null);
+      } catch (error) {
+        console.error('Auth check error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const handleSignOut = async () => {
+    const supabase = createSPAClient();
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
   const features = [
     {
       icon: BookOpen,
@@ -56,19 +84,62 @@ export default function Home() {
                 Learnify
               </span>
             </div>
+            
+            {/* Desktop Navigation Links */}
+            <div className="hidden md:flex items-center gap-6">
+              <Link
+                href="/app/search"
+                className="flex items-center gap-2 text-gray-600 hover:text-purple-600 font-medium transition-colors"
+              >
+                <Search className="w-4 h-4" />
+                AI Search
+              </Link>
+              <Link
+                href="/app/chat"
+                className="flex items-center gap-2 text-gray-600 hover:text-purple-600 font-medium transition-colors"
+              >
+                <MessageSquare className="w-4 h-4" />
+                AI Tutor
+              </Link>
+            </div>
+            
+            {/* Auth Buttons - Conditional */}
             <div className="flex items-center gap-4">
-              <Link
-                href="/auth/login"
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/auth/register"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all font-medium"
-              >
-                Get Started
-              </Link>
+              {loading ? (
+                <div className="w-24 h-10 bg-gray-100 rounded-lg animate-pulse" />
+              ) : user ? (
+                <>
+                  <Link
+                    href="/app"
+                    className="flex items-center gap-2 text-gray-700 hover:text-purple-600 font-medium transition-colors"
+                  >
+                    <User className="w-4 h-4" />
+                    <span className="hidden sm:inline">Dashboard</span>
+                  </Link>
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-red-600 font-medium transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="hidden sm:inline">Sign Out</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/auth/login"
+                    className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/auth/register"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all font-medium"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -90,20 +161,41 @@ export default function Home() {
               that understands your curriculum. Learning made smarter.
             </p>
             <div className="mt-10 flex gap-4 justify-center flex-wrap">
-              <Link
-                href="/auth/register"
-                className="inline-flex items-center px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:shadow-2xl hover:scale-105 transition-all text-lg"
-              >
-                Start Learning Free
-                <Brain className="ml-2 w-5 h-5" />
-              </Link>
-              <Link
-                href="/auth/admin/login"
-                className="inline-flex items-center px-8 py-4 rounded-xl bg-white text-gray-700 font-semibold border-2 border-gray-300 hover:border-purple-600 hover:text-purple-600 transition-all text-lg"
-              >
-                Instructor Portal
-                <Users className="ml-2 w-5 h-5" />
-              </Link>
+              {user ? (
+                <>
+                  <Link
+                    href="/app/chat"
+                    className="inline-flex items-center px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:shadow-2xl hover:scale-105 transition-all text-lg"
+                  >
+                    Start Chatting
+                    <MessageSquare className="ml-2 w-5 h-5" />
+                  </Link>
+                  <Link
+                    href="/app/search"
+                    className="inline-flex items-center px-8 py-4 rounded-xl bg-white text-gray-700 font-semibold border-2 border-gray-300 hover:border-purple-600 hover:text-purple-600 transition-all text-lg"
+                  >
+                    Search Materials
+                    <Search className="ml-2 w-5 h-5" />
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/auth/register"
+                    className="inline-flex items-center px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:shadow-2xl hover:scale-105 transition-all text-lg"
+                  >
+                    Start Learning Free
+                    <Brain className="ml-2 w-5 h-5" />
+                  </Link>
+                  <Link
+                    href="/auth/admin/login"
+                    className="inline-flex items-center px-8 py-4 rounded-xl bg-white text-gray-700 font-semibold border-2 border-gray-300 hover:border-purple-600 hover:text-purple-600 transition-all text-lg"
+                  >
+                    Instructor Portal
+                    <Users className="ml-2 w-5 h-5" />
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -190,30 +282,47 @@ export default function Home() {
           <p className="text-xl text-blue-100 mb-8">
             Join students and instructors already using AI-powered learning
           </p>
-          <Link
-            href="/auth/register"
-            className="inline-flex items-center px-8 py-4 rounded-xl bg-white text-blue-600 font-bold hover:shadow-2xl transition-all text-lg hover:scale-105"
-          >
-            Get Started Free
-            <Zap className="ml-2 w-5 h-5" />
-          </Link>
+          {user ? (
+            <Link
+              href="/app"
+              className="inline-flex items-center px-8 py-4 rounded-xl bg-white text-blue-600 font-bold hover:shadow-2xl transition-all text-lg hover:scale-105"
+            >
+              Go to Dashboard
+              <Zap className="ml-2 w-5 h-5" />
+            </Link>
+          ) : (
+            <Link
+              href="/auth/register"
+              className="inline-flex items-center px-8 py-4 rounded-xl bg-white text-blue-600 font-bold hover:shadow-2xl transition-all text-lg hover:scale-105"
+            >
+              Get Started Free
+              <Zap className="ml-2 w-5 h-5" />
+            </Link>
+          )}
         </div>
       </section>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                   <BookOpen className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold">LearnHub</span>
+                <span className="text-xl font-bold">Learnify</span>
               </div>
               <p className="text-gray-400">
                 AI-powered supplementary learning platform for university courses
               </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">AI Features</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link href="/app/search" className="hover:text-white transition-colors">AI Search</Link></li>
+                <li><Link href="/app/chat" className="hover:text-white transition-colors">AI Tutor Chat</Link></li>
+              </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">For Students</h4>
@@ -230,7 +339,7 @@ export default function Home() {
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400">
-            <p>© {new Date().getFullYear()} LearnHub. Built for better learning.</p>
+            <p>© {new Date().getFullYear()} Learnify. Built for better learning.</p>
           </div>
         </div>
       </footer>

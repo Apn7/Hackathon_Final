@@ -17,6 +17,8 @@ class ChatIntent:
     SUMMARIZE = "summarize"     # User wants a summary
     EXPLAIN = "explain"         # User wants explanation/clarification
     FOLLOWUP = "followup"       # Follow-up on previous topic
+    GENERATE_NOTES = "generate_notes"   # Generate study notes
+    GENERATE_CODE = "generate_code"     # Generate code examples
     GENERAL = "general"         # General question
 
 
@@ -72,6 +74,16 @@ class ChatService:
         if any(kw in message_lower for kw in search_keywords):
             return ChatIntent.SEARCH
         
+        # Check for generate notes intent
+        generate_notes_keywords = ['generate notes', 'create notes', 'study notes', 'learning notes', 'make notes', 'write notes', 'reading notes']
+        if any(kw in message_lower for kw in generate_notes_keywords):
+            return ChatIntent.GENERATE_NOTES
+        
+        # Check for generate code intent
+        generate_code_keywords = ['generate code', 'create code', 'write code', 'code example', 'show code', 'implement', 'programming example']
+        if any(kw in message_lower for kw in generate_code_keywords):
+            return ChatIntent.GENERATE_CODE
+        
         # Check for follow-up (references previous context)
         followup_keywords = ['this', 'that', 'it', 'those', 'these', 'above', 'previous', 'same', 'more about']
         if has_history and any(kw in message_lower for kw in followup_keywords):
@@ -97,6 +109,77 @@ If you're re-explaining something, try a different approach or analogy.""",
             ChatIntent.FOLLOWUP: """The user is asking a FOLLOW-UP question about the previous topic.
 Build on the conversation context to provide a relevant answer.
 Reference back to what was discussed before.""",
+            
+            ChatIntent.GENERATE_NOTES: """You are GENERATING comprehensive study notes based on course materials.
+
+OUTPUT FORMAT (use this exact Markdown structure):
+# Study Notes: [Topic Name]
+
+## Overview
+Brief 2-3 sentence introduction to the topic.
+
+## Key Concepts
+- **Concept 1**: Explanation
+- **Concept 2**: Explanation
+- **Concept 3**: Explanation
+
+## Detailed Explanation
+In-depth coverage of the topic with examples.
+
+## Important Formulas/Definitions
+List any formulas, theorems, or key definitions.
+
+## Practice Questions
+1. Question 1?
+2. Question 2?
+
+## Summary
+3-4 sentence recap of the most important points.
+
+## Sources
+- List all sources used with page numbers
+
+IMPORTANT: Make the notes comprehensive, well-organized, and ready to study from.""",
+            
+            ChatIntent.GENERATE_CODE: """You are GENERATING code examples based on course materials.
+
+OUTPUT FORMAT (use this exact Markdown structure):
+# Code Example: [Topic Name]
+
+## Concept Overview
+Brief explanation of what this code demonstrates.
+
+## Code Implementation
+
+```python
+# Add clear comments explaining each section
+# Use Python unless specified otherwise
+
+def example_function():
+    '''Docstring explaining purpose'''
+    pass  # Implement based on course content
+```
+
+## Code Explanation
+Step-by-step breakdown of how the code works.
+
+## Usage Example
+```python
+# Show how to use the code
+```
+
+## Common Mistakes to Avoid
+- Mistake 1 and how to fix it
+- Mistake 2 and how to fix it
+
+## Related Concepts
+Links to other topics this connects to.
+
+## Sources
+- List all sources used with page numbers
+
+IMPORTANT: Code must be syntactically correct, well-commented, and educational.
+Supported languages: Python (default), JavaScript, Java, C++.""",
             
             ChatIntent.GENERAL: """You are an AI tutor helping the user learn from course materials.
 Provide helpful, accurate responses based on the available content."""

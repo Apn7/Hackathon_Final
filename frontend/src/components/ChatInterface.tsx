@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { 
   Send, Bot, User, FileText, ChevronDown, ChevronUp, 
-  Loader2, Plus, MessageSquare, Trash2, Search, BookOpen, HelpCircle
+  Loader2, Plus, MessageSquare, Trash2, Search, BookOpen, HelpCircle, FileEdit, Code
 } from 'lucide-react';
 import { createSPAClient } from '@/lib/supabase/client';
 import ReactMarkdown from 'react-markdown';
@@ -233,9 +233,11 @@ export default function ChatInterface() {
 
   // Quick action buttons for different intents
   const quickActions = [
-    { label: 'Search materials', icon: <Search className="w-4 h-4" />, prompt: 'Find information about ' },
-    { label: 'Summarize topic', icon: <BookOpen className="w-4 h-4" />, prompt: 'Summarize ' },
-    { label: 'Explain concept', icon: <HelpCircle className="w-4 h-4" />, prompt: 'Explain ' },
+    { label: 'Generate Notes', icon: <FileEdit className="w-4 h-4" />, prompt: 'Generate study notes on ', color: 'bg-green-50 border-green-200 hover:border-green-500 hover:text-green-600' },
+    { label: 'Generate Code', icon: <Code className="w-4 h-4" />, prompt: 'Generate code example for ', color: 'bg-blue-50 border-blue-200 hover:border-blue-500 hover:text-blue-600' },
+    { label: 'Search', icon: <Search className="w-4 h-4" />, prompt: 'Find information about ', color: '' },
+    { label: 'Summarize', icon: <BookOpen className="w-4 h-4" />, prompt: 'Summarize ', color: '' },
+    { label: 'Explain', icon: <HelpCircle className="w-4 h-4" />, prompt: 'Explain ', color: '' },
   ];
 
   return (
@@ -325,7 +327,9 @@ export default function ChatInterface() {
                     <button
                       key={action.label}
                       onClick={() => setInput(action.prompt)}
-                      className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                      className={`flex items-center gap-2 px-4 py-2 border text-gray-700 dark:text-gray-300 rounded-full text-sm transition-colors ${
+                        action.color || 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400'
+                      }`}
                     >
                       {action.icon}
                       {action.label}
