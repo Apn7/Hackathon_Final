@@ -422,7 +422,7 @@ export default function AdminCourseBrowser() {
               <form onSubmit={handleUpload} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Course Title *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Course Title (Topic) *</label>
                     <input
                       type="text"
                       required
@@ -452,6 +452,7 @@ export default function AdminCourseBrowser() {
                       value={uploadData.week_number}
                       onChange={(e) => setUploadData({ ...uploadData, week_number: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="e.g., 1"
                     />
                   </div>
                   <div>
@@ -468,6 +469,32 @@ export default function AdminCourseBrowser() {
                       <option value="other">Other</option>
                     </select>
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
+                    <input
+                      type="text"
+                      value={uploadData.tags}
+                      onChange={(e) => setUploadData({ ...uploadData, tags: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="e.g., python, ml, basics"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
+                      {currentCategory === 'theory' ? '📚 Theory' : '💻 Lab'}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    value={uploadData.description}
+                    onChange={(e) => setUploadData({ ...uploadData, description: e.target.value })}
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Brief description of the content..."
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">File *</label>
@@ -476,7 +503,9 @@ export default function AdminCourseBrowser() {
                     required
                     onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    accept=".pdf,.pptx,.ppt,.docx,.doc,.py,.js,.ts,.cpp,.c,.java,.html,.css,.md,.txt,.json,.yaml,.yml,.zip"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Supported: PDF, PPTX, code files, MD, TXT, ZIP (max 50MB)</p>
                 </div>
                 <div className="flex gap-3">
                   <button
@@ -602,7 +631,9 @@ export default function AdminCourseBrowser() {
                       required
                       onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                      accept=".pdf,.pptx,.ppt,.docx,.doc,.py,.js,.ts,.cpp,.c,.java,.html,.css,.md,.txt,.json,.yaml,.yml,.zip"
                     />
+                    <p className="text-xs text-gray-500 mt-1">Supported: PDF, PPTX, code files, MD, TXT, ZIP (max 50MB)</p>
                   </div>
                 )}
                 <div className="flex gap-3">
@@ -633,8 +664,8 @@ export default function AdminCourseBrowser() {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">File</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Week</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Size</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Content Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Tags</th>
                     <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Actions</th>
                   </tr>
                 </thead>
@@ -653,11 +684,17 @@ export default function AdminCourseBrowser() {
                       <td className="px-6 py-4 text-gray-600">
                         {file.week_number ? `Week ${file.week_number}` : '-'}
                       </td>
-                      <td className="px-6 py-4 text-gray-600 uppercase text-sm">
-                        {file.file_type}
+                      <td className="px-6 py-4">
+                        <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                          {file.content_type?.replace('_', ' ') || file.file_type}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 text-gray-600 text-sm">
-                        {formatFileSize(file.file_size_bytes)}
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1">
+                          {file.tags.length > 0 ? file.tags.slice(0, 3).map((tag, i) => (
+                            <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">{tag}</span>
+                          )) : <span className="text-gray-400 text-sm">-</span>}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
                         <button
