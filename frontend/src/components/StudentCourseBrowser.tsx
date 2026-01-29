@@ -10,7 +10,7 @@ export default function StudentCourseBrowser() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Navigation state
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
   const [currentCourse, setCurrentCourse] = useState<string | null>(null);
@@ -128,7 +128,7 @@ export default function StudentCourseBrowser() {
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
         <p className="font-medium">Error loading materials</p>
         <p className="text-sm">{error}</p>
-        <button 
+        <button
           onClick={fetchMaterials}
           className="mt-2 px-3 py-1 text-sm bg-red-100 hover:bg-red-200 rounded"
         >
@@ -142,45 +142,59 @@ export default function StudentCourseBrowser() {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
-      {viewLevel !== 'categories' && (
-        <div className="flex items-center gap-2 text-sm">
-          <button
-            onClick={() => { setCurrentCategory(null); setCurrentCourse(null); setCurrentWeek(null); }}
-            className="text-blue-600 hover:underline"
-          >
-            Home
-          </button>
-          {currentCategory && (
-            <>
-              <span className="text-gray-400">/</span>
-              <button
-                onClick={() => { setCurrentCourse(null); setCurrentWeek(null); }}
-                className={currentCourse ? "text-blue-600 hover:underline" : "text-gray-700 font-medium"}
-              >
-                {currentCategory === 'theory' ? '📚 Theory' : '💻 Lab'}
-              </button>
-            </>
-          )}
-          {currentCourse && (
-            <>
-              <span className="text-gray-400">/</span>
-              <button
-                onClick={() => setCurrentWeek(null)}
-                className={currentWeek ? "text-blue-600 hover:underline" : "text-gray-700 font-medium"}
-              >
-                {currentCourse}
-              </button>
-            </>
-          )}
-          {currentWeek !== null && (
-            <>
-              <span className="text-gray-400">/</span>
-              <span className="text-gray-700 font-medium">Week {currentWeek}</span>
-            </>
-          )}
-        </div>
-      )}
+      <div className="flex justify-between items-center">
+        {/* Breadcrumb */}
+        {viewLevel !== 'categories' ? (
+          <div className="flex items-center gap-2 text-sm">
+            <button
+              onClick={() => { setCurrentCategory(null); setCurrentCourse(null); setCurrentWeek(null); }}
+              className="text-blue-600 hover:underline"
+            >
+              Home
+            </button>
+            {currentCategory && (
+              <>
+                <span className="text-gray-400">/</span>
+                <button
+                  onClick={() => { setCurrentCourse(null); setCurrentWeek(null); }}
+                  className={currentCourse ? "text-blue-600 hover:underline" : "text-gray-700 font-medium"}
+                >
+                  {currentCategory === 'theory' ? '📚 Theory' : '💻 Lab'}
+                </button>
+              </>
+            )}
+            {currentCourse && (
+              <>
+                <span className="text-gray-400">/</span>
+                <button
+                  onClick={() => setCurrentWeek(null)}
+                  className={currentWeek ? "text-blue-600 hover:underline" : "text-gray-700 font-medium"}
+                >
+                  {currentCourse}
+                </button>
+              </>
+            )}
+            {currentWeek !== null && (
+              <>
+                <span className="text-gray-400">/</span>
+                <span className="text-gray-700 font-medium">Week {currentWeek}</span>
+              </>
+            )}
+          </div>
+        ) : (
+          <h2 className="text-2xl font-bold text-gray-800">Browse Courses</h2>
+        )}
+
+        <a
+          href="/app/search"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all font-medium text-sm"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          AI Tutor Search
+        </a>
+      </div>
 
       {/* Back Button */}
       {viewLevel !== 'categories' && (
@@ -242,7 +256,7 @@ export default function StudentCourseBrowser() {
           <h2 className="text-xl font-bold text-gray-900">
             {currentCategory === 'theory' ? '📚 Theory Courses' : '💻 Lab Courses'}
           </h2>
-          
+
           {getCourses(currentCategory).length === 0 ? (
             <div className="bg-white rounded-xl shadow-sm p-8 text-center text-gray-500">
               No courses available yet.
@@ -279,7 +293,7 @@ export default function StudentCourseBrowser() {
       {viewLevel === 'weeks' && currentCategory && currentCourse && (
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-gray-900">{currentCourse}</h2>
-          
+
           {getWeeks(currentCategory, currentCourse).length === 0 ? (
             <div className="bg-white rounded-xl shadow-sm p-8 text-center text-gray-500">
               No weeks available yet.
@@ -312,7 +326,7 @@ export default function StudentCourseBrowser() {
           <h2 className="text-xl font-bold text-gray-900">
             Week {currentWeek} Materials
           </h2>
-          
+
           {getFiles(currentCategory, currentCourse, currentWeek).length === 0 ? (
             <div className="bg-white rounded-xl shadow-sm p-8 text-center text-gray-500">
               No files available yet.
