@@ -138,6 +138,26 @@ async def ask_question(
             week=request.week
         )
         
+        # Collect material IDs to fetch file paths
+        material_ids = list(set(s["material_id"] for s in response.sources))
+        
+        # Fetch file paths
+        supabase = get_supabase_admin_client()
+        materials_resp = supabase.table("course_materials").select("id, file_path").in_("id", material_ids).execute()
+        
+        # Generate URLs
+        url_map = {}
+        if materials_resp.data:
+            for m in materials_resp.data:
+                try:
+                    url_response = supabase.storage.from_(settings.STORAGE_BUCKET).create_signed_url(
+                        m["file_path"],
+                        expires_in=3600
+                    )
+                    url_map[m["id"]] = url_response.get("signedURL")
+                except:
+                    pass
+
         return AskResponse(
             answer=response.answer,
             sources=[
@@ -146,7 +166,8 @@ async def ask_question(
                     page_number=s["page_number"],
                     excerpt=s["excerpt"],
                     similarity=s["similarity"],
-                    material_id=s["material_id"]
+                    material_id=s["material_id"],
+                    file_url=url_map.get(s["material_id"])
                 )
                 for s in response.sources
             ],

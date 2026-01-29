@@ -149,6 +149,7 @@ class SourceDocument(BaseModel):
     excerpt: str
     similarity: float
     material_id: str
+    file_url: Optional[str] = None
 
 
 class AskResponse(BaseModel):

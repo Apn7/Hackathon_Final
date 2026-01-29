@@ -10,6 +10,7 @@ interface SourceDocument {
   excerpt: string;
   similarity: number;
   material_id: string;
+  file_url?: string;
 }
 
 interface AskResponse {
@@ -188,7 +189,18 @@ export default function IntelligentSearch() {
                             Source {idx + 1}
                           </span>
                           <span className="font-medium text-gray-900 dark:text-white text-sm">
-                            {source.file_name}
+                            {source.file_url ? (
+                              <a
+                                href={source.file_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:underline text-purple-600 dark:text-purple-400"
+                              >
+                                {source.file_name}
+                              </a>
+                            ) : (
+                              source.file_name
+                            )}
                           </span>
                           {source.page_number && (
                             <span className="text-gray-500 dark:text-gray-400 text-sm">

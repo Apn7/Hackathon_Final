@@ -53,7 +53,7 @@ export default function Home() {
                 <BookOpen className="w-6 h-6 text-white" />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                LearnHub
+                Learnify
               </span>
             </div>
             <div className="flex items-center gap-4">
@@ -86,7 +86,7 @@ export default function Home() {
               <span className="text-gray-900">For University Courses</span>
             </h1>
             <p className="mt-6 text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Access organized course materials, search through lectures, and chat with an AI tutor 
+              Access organized course materials, search through lectures, and chat with an AI tutor
               that understands your curriculum. Learning made smarter.
             </p>
             <div className="mt-10 flex gap-4 justify-center flex-wrap">
