@@ -25,11 +25,31 @@ This will create:
 3. Copy and paste the updated script into Supabase SQL Editor
 4. Click **Run** to execute
 
-## Step 3: Verify Setup
+## Step 3: Create Course Materials Table (Part 1 CMS)
+
+1. Copy and paste the contents of `04_create_course_materials.sql`
+2. Click **Run** to execute
+
+This will create:
+- `course_materials` table for storing uploaded files metadata
+- `material_access_logs` table for tracking downloads
+- RLS policies for admin/student access
+- Indexes for performance
+
+## Step 4: Setup Storage Bucket
+
+1. Go to **Storage** in Supabase Dashboard
+2. Click **Create new bucket**
+3. Name: `course-materials`
+4. Set Public to **OFF**
+5. Then run `05_setup_storage_bucket.sql` to apply storage policies
+
+## Verification
 
 Run this query to check the setup:
 ```sql
 SELECT * FROM public.profiles;
+SELECT * FROM public.course_materials;
 ```
 
 ## Manual Admin Promotion
@@ -47,3 +67,4 @@ WHERE email = 'their-email@example.com';
 - All new registrations default to 'student' role
 - Admin emails must be configured in the database function
 - Admins must register with their designated email address
+- Course materials require storage bucket to be created first

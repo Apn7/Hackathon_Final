@@ -1,4 +1,16 @@
+# FastAPI Backend Dependencies
 fastapi>=0.109.0
 uvicorn[standard]>=0.27.0
 pydantic>=2.5.0
 
+# Supabase
+supabase>=2.3.0
+
+# File handling
+python-multipart>=0.0.6
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# CORS
+# (Built into FastAPI)
