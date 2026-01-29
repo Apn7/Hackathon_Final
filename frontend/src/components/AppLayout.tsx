@@ -9,7 +9,7 @@ import {
     X,
     ChevronDown,
     LogOut,
-    Key, Files, LucideListTodo, MessageSquare, Search,
+    Key, Files, LucideListTodo, MessageSquare, Search, ExternalLink,
 } from 'lucide-react';
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClient } from "@/lib/supabase/client";
@@ -67,14 +67,29 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className={`fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform transition-transform duration-200 ease-in-out z-30 
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
 
-                <div className="h-16 flex items-center justify-between px-4 border-b">
-                    <span className="text-xl font-semibold text-primary-600">{productName}</span>
-                    <button
-                        onClick={toggleSidebar}
-                        className="lg:hidden text-gray-500 hover:text-gray-700"
+                {/* Sidebar Header */}
+                <div className="h-auto border-b">
+                    {/* Product Name */}
+                    <div className="h-16 flex items-center justify-between px-4">
+                        <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            {productName || 'Learnify'}
+                        </span>
+                        <button
+                            onClick={toggleSidebar}
+                            className="lg:hidden text-gray-500 hover:text-gray-700"
+                        >
+                            <X className="h-6 w-6" />
+                        </button>
+                    </div>
+                    
+                    {/* Back to Home Link */}
+                    <Link 
+                        href="/"
+                        className="flex items-center gap-2 px-4 py-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all text-sm font-medium border-t border-gray-100"
                     >
-                        <X className="h-6 w-6" />
-                    </button>
+                        <ExternalLink className="w-4 h-4" />
+                        <span>← Back to Home</span>
+                    </Link>
                 </div>
 
                 {/* Navigation */}

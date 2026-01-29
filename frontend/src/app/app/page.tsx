@@ -1,5 +1,6 @@
 import { createServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import StudentCourseBrowser from '@/components/StudentCourseBrowser';
 
 async function getUserProfile(userId: string) {
@@ -43,6 +44,19 @@ export default async function StudentDashboard() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          {/* Back to Home - Top Left */}
+          <div className="mb-4">
+            <Link 
+              href="/"
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors text-sm font-medium"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to Home
+            </Link>
+          </div>
+          
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
@@ -59,14 +73,23 @@ export default async function StudentDashboard() {
                 </p>
               </div>
             </div>
-            <form action="/api/auth/signout" method="POST">
-              <button
-                type="submit"
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            <div className="flex items-center gap-3">
+              <Link
+                href="/app/chat"
+                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg hover:from-purple-600 hover:to-indigo-700 transition-colors"
               >
-                Sign Out
-              </button>
-            </form>
+                AI Chat
+              </Link>
+              
+              <form action="/api/auth/signout" method="POST">
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Sign Out
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </header>

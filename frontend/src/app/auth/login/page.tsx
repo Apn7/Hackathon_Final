@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signInWithEmail } from '@/lib/supabase/client';
 import { getRoleBasedRedirect } from '@/lib/auth/roles';
-import { GraduationCap, Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { GraduationCap, Mail, Lock, AlertCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 export default function StudentLoginPage() {
   const [email, setEmail] = useState('');
@@ -47,7 +47,14 @@ export default function StudentLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4 relative">
+      <Link 
+        href="/"
+        className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors font-medium group"
+      >
+        <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+        <span>Back to Home</span>
+      </Link>
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
